@@ -41,9 +41,10 @@ func main(){
 		CallClear()
 		PressureReg, err := client.ReadHoldingRegisters(0, 2)
 		//fmt.Printf("%x\n", PressureReg)
+		p := []byte{PressureReg[2], PressureReg[3], PressureReg[0], PressureReg[1]}
 		WriteRegValues(PressureReg)
 		checkError("Curr Pressure reading error", err)
-		PressurePa := Float32frombytes(PressureReg)
+		PressurePa := Float32frombytes(p)
 
 
 		MaxPressureReg, err := client.ReadHoldingRegisters(2, 2)
@@ -96,7 +97,7 @@ func CallClear() {
 }
 
 func Float32frombytes(bytes []byte) float32 {
-	bits := binary.LittleEndian.Uint32(bytes)
+	bits := binary.BigEndian.Uint32(bytes)
 	float := math.Float32frombits(bits)
 
 	return float

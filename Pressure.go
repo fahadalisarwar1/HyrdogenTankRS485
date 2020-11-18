@@ -116,22 +116,7 @@ func checkError(message string, err error) {
 	}
 }
 
-func WriteRegValues(pressure []byte){
-	f, err := os.OpenFile("reg.csv", os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModeAppend)
-	checkError("reg write error", err)
-	defer f.Close()
-	var reg [][]string
-	value := fmt.Sprintf("%d", pressure)
-	reg = append(reg, []string{value})
-	w := csv.NewWriter(f)
-	err = w.Write([]string{time.Now().String(), value})
 
-	if err != nil{
-		log.Fatal(err)
-	}
-	w.Flush()
-
-}
 
 func WriteDataToCSV(cp float32, maxp float32, minp float32, temp float32, path string){
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModeAppend)

@@ -19,16 +19,19 @@ func main(){
 
 	var delaytime int
 	var filename string
+	var COMPORT string
 	//	USAGE:
 	//  delaytime is the amount of time you want between each reading
 	//  filename is name of the file you want to store
 	flag.IntVar(&delaytime, "delaytime", 600, "Time delay in seconds to be used for logging")
 	flag.StringVar(&filename, "filename", "HyrdogenTank.csv", "File name to be used for storing data")
+	flag.StringVar(&COMPORT, "port", "COM5", "serial port to be used for communicaiton")
+	
 	flag.Parse()
 
 
 	// Settings for modbus RTU
-	handler := modbus.NewRTUClientHandler("COM5")
+	handler := modbus.NewRTUClientHandler(COMPORT)
 	handler.BaudRate = 9600
 	handler.DataBits = 8
 	handler.Parity = "N"

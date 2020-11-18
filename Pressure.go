@@ -23,10 +23,12 @@ func main(){
 	//	USAGE:
 	//  delaytime is the amount of time you want between each reading
 	//  filename is name of the file you want to store
+	//  COMPORT is the serial port to be used for communicaiton
+
 	flag.IntVar(&delaytime, "delaytime", 600, "Time delay in seconds to be used for logging")
 	flag.StringVar(&filename, "filename", "HyrdogenTank.csv", "File name to be used for storing data")
 	flag.StringVar(&COMPORT, "port", "COM5", "serial port to be used for communicaiton")
-	
+
 	flag.Parse()
 
 

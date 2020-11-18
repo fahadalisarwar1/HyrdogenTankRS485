@@ -40,12 +40,15 @@ func main(){
 	for {
 		CallClear()
 		PressureReg, err := client.ReadHoldingRegisters(0, 2)
+		//fmt.Printf("%x\n", PressureReg)
+		WriteRegValues(PressureReg)
 		checkError("Curr Pressure reading error", err)
 		PressurePa := Float32frombytes(PressureReg)
 
 
 		MaxPressureReg, err := client.ReadHoldingRegisters(2, 2)
 		checkError("Max Pressure Reading Error", err)
+		//fmt.Println(MaxPressureReg)
 		MaxPressure := Float32frombytes(MaxPressureReg)
 
 		MinPressureReg, err := client.ReadHoldingRegisters(4, 2)
@@ -59,10 +62,9 @@ func main(){
 		fmt.Println("Max Pressure:\t",MaxPressure)
 		fmt.Println("Min Pressure:\t",MinPressure)
 		fmt.Println("Temperature:\t",tempC)
-
 		d := time.Duration(delaytime)
-		time.Sleep(d*time.Second)
 		WriteDataToCSV(PressurePa, MaxPressure, MinPressure,tempC, filename)
+		time.Sleep(d*time.Second)
 
 	}
 }
@@ -96,6 +98,7 @@ func CallClear() {
 func Float32frombytes(bytes []byte) float32 {
 	bits := binary.LittleEndian.Uint32(bytes)
 	float := math.Float32frombits(bits)
+
 	return float
 }
 
@@ -104,6 +107,23 @@ func checkError(message string, err error) {
 	if err != nil {
 		log.Fatal(message, err)
 	}
+}
+
+func WriteRegValues(pressure []byte){
+	f, err := os.OpenFile("reg.csv", os.O_APPEND|os.O_WRONLY|os.O_CREATE, os.ModeAppend)
+	checkError("reg write error", err)
+	defer f.Close()
+	var reg [][]string
+	value := fmt.Sprintf("%d", pressure)
+	reg = append(reg, []string{value})
+	w := csv.NewWriter(f)
+	err = w.Write([]string{time.Now().String(), value})
+
+	if err != nil{
+		log.Fatal(err)
+	}
+	w.Flush()
+
 }
 
 func WriteDataToCSV(cp float32, maxp float32, minp float32, temp float32, path string){

@@ -8,10 +8,10 @@ import (
 	"github.com/goburrow/modbus"
 	"log"
 	"math"
+	"os"
 	"os/exec"
 	"runtime"
 	"time"
-	"os"
 )
 
 func main(){
@@ -20,11 +20,14 @@ func main(){
 	var delaytime int
 	var filename string
 	//	USAGE:
-	//
+	//  delaytime is the amount of time you want between each reading
+	//  filename is name of the file you want to store
 	flag.IntVar(&delaytime, "delaytime", 600, "Time delay in seconds to be used for logging")
 	flag.StringVar(&filename, "filename", "HyrdogenTank.csv", "File name to be used for storing data")
 	flag.Parse()
 
+
+	// Settings for modbus RTU
 	handler := modbus.NewRTUClientHandler("COM5")
 	handler.BaudRate = 9600
 	handler.DataBits = 8
@@ -40,29 +43,32 @@ func main(){
 	for {
 		CallClear()
 		PressureReg, err := client.ReadHoldingRegisters(0, 2)
-		//fmt.Printf("%x\n", PressureReg)
-		p := []byte{PressureReg[2], PressureReg[3], PressureReg[0], PressureReg[1]}
-		WriteRegValues(PressureReg)
+		// The values are stored in little endian in 4 bytes of 32 bits. This numbering is done to correct their order
+		pCurr := []byte{PressureReg[2], PressureReg[3], PressureReg[0], PressureReg[1]}
+
 		checkError("Curr Pressure reading error", err)
-		PressurePa := Float32frombytes(p)
+		PressurePa := Float32frombytes(pCurr)
+
 
 
 		MaxPressureReg, err := client.ReadHoldingRegisters(2, 2)
 		checkError("Max Pressure Reading Error", err)
-		//fmt.Println(MaxPressureReg)
-		MaxPressure := Float32frombytes(MaxPressureReg)
+		pMax := []byte{MaxPressureReg[2], MaxPressureReg[3], MaxPressureReg[0], MaxPressureReg[1]}
+		MaxPressure := Float32frombytes(pMax)
 
 		MinPressureReg, err := client.ReadHoldingRegisters(4, 2)
 		checkError("Min Pressure Reading Error", err)
-		MinPressure := Float32frombytes(MinPressureReg)
+		pMin := []byte{MinPressureReg[2], MinPressureReg[3], MinPressureReg[0], MinPressureReg[1]}
+		MinPressure := Float32frombytes(pMin)
 
 		TempReg, err := client.ReadHoldingRegisters(6, 1)
-		//fmt.Println(TempReg)
-		tempC := float32(TempReg[1])/10.0
+		tempC := float32(TempReg[1])/10.0 // The temperature has to be dividied by 10 as per specifications in the documentation
+
 		fmt.Println("Curr Pressure:\t", PressurePa)
-		fmt.Println("Max Pressure:\t",MaxPressure)
-		fmt.Println("Min Pressure:\t",MinPressure)
+		fmt.Println("CMax Pressure:\t", MaxPressure)
+		fmt.Println("Curr Pressure:\t", MinPressure)
 		fmt.Println("Temperature:\t",tempC)
+
 		d := time.Duration(delaytime)
 		WriteDataToCSV(PressurePa, MaxPressure, MinPressure,tempC, filename)
 		time.Sleep(d*time.Second)
@@ -134,16 +140,17 @@ func WriteDataToCSV(cp float32, maxp float32, minp float32, temp float32, path s
 	}
 	defer f.Close()
 
-	var data [][]string
+	//var data [][]string
 	cp_str := fmt.Sprintf("%f", cp)
-	//fmt.Println(cp_str)
+
 	cmax_str := fmt.Sprintf("%f", maxp)
 	cmin_str := fmt.Sprintf("%f", minp)
 	temp_str := fmt.Sprintf("%.5f", temp)
 	curr_time := time.Now()
-	data = append(data, []string{curr_time.String(), cp_str, cmax_str, cmin_str, temp_str})
+	//data = append(data, []string{curr_time.String(), cp_str, cmax_str, cmin_str, temp_str})
 	w := csv.NewWriter(f)
 	err = w.Write([]string{curr_time.String(), cp_str, cmax_str, cmin_str, temp_str})
+	//err = w.Write([]string{curr_time.String(), cp_str, temp_str})
 
 	if err != nil{
 		log.Fatal(err)

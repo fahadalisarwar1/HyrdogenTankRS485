@@ -20,7 +20,7 @@ The program requires the following libraries
 In order to be able to use it.
 
 
-`go run Pressure.go -delaytime 5 -filename HydrogenTank.csv`
+`go run Pressure.go -delaytime 5 -filename HydrogenTank.csv -port COM5`
 
 USAGE:
 

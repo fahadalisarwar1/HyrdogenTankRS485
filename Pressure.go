@@ -142,14 +142,15 @@ func WriteDataToCSV(cp float32, maxp float32, minp float32, temp float32, path s
 
 	//var data [][]string
 	cp_str := fmt.Sprintf("%f", cp)
-
+	p_bars := cp/100000
+	p_bars_str := fmt.Sprintf("%f", p_bars)
 	cmax_str := fmt.Sprintf("%f", maxp)
 	cmin_str := fmt.Sprintf("%f", minp)
 	temp_str := fmt.Sprintf("%.5f", temp)
 	curr_time := time.Now()
-	//data = append(data, []string{curr_time.String(), cp_str, cmax_str, cmin_str, temp_str})
+
 	w := csv.NewWriter(f)
-	err = w.Write([]string{curr_time.String(), cp_str, cmax_str, cmin_str, temp_str})
+	err = w.Write([]string{curr_time.String(), cp_str,p_bars_str, cmax_str, cmin_str, temp_str})
 	//err = w.Write([]string{curr_time.String(), cp_str, temp_str})
 
 	if err != nil{
